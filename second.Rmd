@@ -1,0 +1,67 @@
+---
+title: "Adult"
+author: "Kuti K. Matyas"
+date: "1/28/2017"
+output: 
+  html_document:
+  df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Init
+
+
+```{r init}
+library(h2o)
+library(knitr)
+h2o.init(nthreads = 24)
+adult_test <- h2o.importFile('adult.data.csv')
+d<-read.csv('adult.data.csv')
+adult_train <- h2o.importFile('adult.data.csv')
+df<-read.csv('adult.data.csv')
+df2<-read.csv('adult.test.csv')
+knitr::kable(head(df))
+```
+
+
+
+```{r}
+rf <- h2o.randomForest(x=1:14,y=15,adult_train, max_depth = 1000,ntrees = 100)#,nfolds = 5) 
+rf@model$training_metrics
+rf@model$model_summary
+h2o.varimp_plot(rf)
+perfrf <- h2o.performance(rf,adult_test)
+h2o.confusionMatrix(perfrf)
+```
+
+asd
+```{r}
+nn <- h2o.deeplearning(x=1:14,y=15,adult_train,hidden = c(200,200),epochs = 1000,diagnostics=TRUE,variable_importances = TRUE,model_id = "nn200_200_10k_oh",export_weights_and_biases=TRUE,categorical_encoding = "OneHotInternal",stopping_rounds=5,stopping_metric = "AUC")
+nn@model$training_metrics
+nn@model$model_summary
+h2o.varimp_plot(nn)
+h2o.weights(nn,matrix_id = 1)
+h2o.biases(nn,vector_id = 1)
+perfnn <- h2o.performance(nn,adult_test)
+perfnn@metrics
+h2o.auc(perfnn)
+h2o.confusionMatrix(perfnn)
+```
+
+ 
+ 
+```{r}
+bayes <- h2o.naiveBayes(x=1:14,y=15,adult_train)
+bayes@model$training_metrics
+bayes@model$apriori
+bayes@model$pcond
+perfbayes <- h2o.performance(bayes,adult_test)
+h2o.auc(perfbayes)
+h2o.confusionMatrix(perfbayes)
+```
+ 
+ 
+ 
